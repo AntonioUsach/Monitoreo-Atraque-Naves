@@ -11,10 +11,6 @@ app = FastAPI(
 )
 
 # =====================================================================
-# 1. PARÁMETROS EDITABLES EN PYTHON (SE VEN DIRECTAMENTE EN LA APP FINAL)
-# Edita cualquiera de estos valores en este archivo (api/index.py) y
-# al guardar / subir a GitHub se actualizarán automáticamente en la web.
-# =====================================================================
 CONFIG_MUELLE = {
     "titulo_muelle": "Monitoreo de Atraque en Muelle",
     "velocidad_inicial_cms": 6.0,     # Velocidad con la que inicia el simulador (cm/s)
@@ -37,10 +33,7 @@ class LecturaBasicaSensor(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 def servir_panel_etapa1():
-    """
-    Lee la plantilla HTML y le inyecta dinámicamente los valores configurados
-    en Python (CONFIG_MUELLE) para que cualquier cambio en Python se vea en la app.
-    """
+    
     ruta_html = os.path.join(os.path.dirname(__file__), "simulador.html")
     if not os.path.exists(ruta_html):
         return "<h1>Monitoreo de Atraque - Etapa 1 Activa</h1>"
@@ -48,7 +41,7 @@ def servir_panel_etapa1():
     with open(ruta_html, "r", encoding="utf-8") as f:
         html = f.read()
 
-    # Inyectar valores de Python en la interfaz web
+
     html = html.replace("Monitoreo de Atraque en Muelle", CONFIG_MUELLE["titulo_muelle"])
     html = html.replace("distanceM: 35.0,", f"distanceM: {CONFIG_MUELLE['distancia_inicial_m']},")
     html = html.replace("speedCms: 6.0,", f"speedCms: {CONFIG_MUELLE['velocidad_inicial_cms']},")
@@ -63,13 +56,11 @@ def servir_panel_etapa1():
 
 @app.get("/api/config")
 def obtener_configuracion():
-    """Devuelve en formato JSON la configuración actual definida en Python."""
     return CONFIG_MUELLE
 
 
 @app.post("/api/telemetria")
 def evaluar_atraque_basico(lectura: LecturaBasicaSensor):
-    """Evalúa velocidad, distancia y ángulo según los umbrales definidos en CONFIG_MUELLE."""
     vel_max_cms = max(lectura.velocidad_proa_cms, lectura.velocidad_popa_cms)
     dist_promedio_m = (lectura.distancia_proa_m + lectura.distancia_popa_m) / 2.0
 
