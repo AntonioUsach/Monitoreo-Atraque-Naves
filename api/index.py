@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 
 app = FastAPI(
-    title="DockGuard BAS - Etapa 1 (Monitoreo Básico de Atraque)",
+    title="(Monitoreo Básico de Atraque)",
     description="API en Python conectada en vivo con el panel visual de atraque",
     version="1.1.0"
 )
