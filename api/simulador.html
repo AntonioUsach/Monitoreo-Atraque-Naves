@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monitoreo de Atraque Portuario — Etapa 2 (8 Defensas y Supabase)</title>
+  <title>Monitoreo de Atraque Portuario — Etapa 2 </title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -255,6 +255,20 @@
             </div>
           </div>
 
+          <!-- Control 3: Distancia Inicial de Atraque (30 m a 150 m) -->
+          <div class="bg-slate-950/70 border border-slate-800/90 rounded-xl p-4 space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <label for="sliderInitialDistance" class="text-slate-200 font-semibold">3. Distancia Inicial de Atraque</label>
+              <span id="lblSliderInitialDistance" class="mono text-sm font-bold text-cyan-300">45 m</span>
+            </div>
+            <input id="sliderInitialDistance" type="range" min="30" max="150" step="5" value="45" class="w-full accent-cyan-400 cursor-pointer" />
+            <div class="flex justify-between text-[11px] text-slate-500">
+              <span>30 m</span>
+              <span class="text-slate-400">Rango: 30 a 150 m</span>
+              <span>150 m</span>
+            </div>
+          </div>
+
           <!-- Resumen de Estado de Alerta -->
           <div id="sideAlertBox" class="rounded-xl p-3.5 border border-emerald-500/30 bg-emerald-500/10 text-xs space-y-1 transition">
             <div id="sideAlertTitle" class="font-bold text-emerald-300 flex items-center gap-1.5">
@@ -335,6 +349,17 @@
         <span id="modalSampleCount" class="mono text-xs px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold">
           0 muestras
         </span>
+      </div>
+
+      <!-- Nombre asignado a la simulación -->
+      <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-1.5">
+        <label for="inputCustomSimName" class="block text-xs font-semibold text-slate-300">
+          Nombre o Identificador de la Simulación:
+        </label>
+        <div class="flex items-center gap-2">
+          <input id="inputCustomSimName" type="text" placeholder="Ej: Maniobra Buque Tanque Sitio 2, SIM-101..." class="flex-1 rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white mono focus:outline-none focus:border-cyan-400" />
+          <span class="text-[11px] text-slate-500 whitespace-nowrap">Columna <code>simulacion_id</code></span>
+        </div>
       </div>
 
       <div class="bg-slate-950 border border-slate-800 rounded-xl max-h-56 overflow-y-auto">
@@ -453,6 +478,7 @@
       started: false,
       running: false,
       audioEnabled: true,
+      initialDistanceM: 45.0,
       distanceM: 45.0,
       speedCms: 6.0,
       angleDeg: 1.0,
@@ -556,7 +582,7 @@
 
     function startSimulation() {
       if (!state.started || state.distanceM <= 0.2) {
-        state.distanceM = 45.0;
+        state.distanceM = state.initialDistanceM;
         state.elapsedSeconds = 0;
         state.currentRunSamples = [];
         state.currentSimId = "SIM-" + String(Math.floor(100 + Math.random() * 900));
@@ -578,6 +604,9 @@
       const tbody = document.getElementById("modalPreviewBody");
       tbody.innerHTML = "";
       document.getElementById("modalSampleCount").textContent = `${state.currentRunSamples.length} muestras (1 Hz)`;
+
+      const inputName = document.getElementById("inputCustomSimName");
+      if (inputName) inputName.value = state.currentSimId;
 
       state.currentRunSamples.forEach((s) => {
         const tr = document.createElement("tr");
@@ -752,12 +781,21 @@
 
       const dockY = h - 56;
 
-      // 2. Líneas de referencia de distancia horizontal (10m, 20m, 30m, 40m)
+      // 2. Líneas de referencia de distancia horizontal adaptadas al rango (30m a 150m)
+      const maxScaleM = Math.max(50, state.initialDistanceM);
       ctx.strokeStyle = "rgba(56, 189, 248, 0.14)";
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
-      [10, 20, 30, 40].forEach((dist) => {
-        const yLine = dockY - 12 - (dist / 45) * (dockY - 85);
+
+      let refDistances = [10, 20, 30, 40];
+      if (maxScaleM > 90) {
+        refDistances = [30, 60, 90, 120, 150].filter(d => d <= maxScaleM);
+      } else if (maxScaleM > 50) {
+        refDistances = [20, 40, 60, 80].filter(d => d <= maxScaleM);
+      }
+
+      refDistances.forEach((dist) => {
+        const yLine = dockY - 12 - (dist / maxScaleM) * (dockY - 85);
         ctx.beginPath();
         ctx.moveTo(20, yLine);
         ctx.lineTo(w - 20, yLine);
@@ -809,7 +847,7 @@
       const shipCenterX = w / 2;
       const minShipY = dockY - 36;
       const maxShipY = 66;
-      const shipY = minShipY - (state.distanceM / 45) * (minShipY - maxShipY);
+      const shipY = minShipY - (state.distanceM / maxScaleM) * (minShipY - maxShipY);
       const shipLength = Math.min(w * 0.62, 330);
       const shipBeam = 46;
       const rad = (state.angleDeg * Math.PI) / 180;
@@ -944,6 +982,16 @@
         document.getElementById("lblSliderAngle").textContent = (state.angleDeg > 0 ? "+" : "") + state.angleDeg.toFixed(1) + "°";
       });
 
+      document.getElementById("sliderInitialDistance").addEventListener("input", (e) => {
+        const val = parseFloat(e.target.value);
+        state.initialDistanceM = val;
+        document.getElementById("lblSliderInitialDistance").textContent = val + " m";
+        if (!state.started || state.distanceM <= 0.2) {
+          state.distanceM = val;
+        }
+        showToast(`Distancia inicial configurada en ${val} m`);
+      });
+
       document.getElementById("btnStartSim").addEventListener("click", startSimulation);
       document.getElementById("btnFinishSim").addEventListener("click", finishSimulationAndPromptSave);
 
@@ -956,12 +1004,12 @@
 
       document.getElementById("btnReset").addEventListener("click", () => {
         stopSamplingTimer();
-        state.distanceM = 45.0;
+        state.distanceM = state.initialDistanceM;
         state.started = false;
         state.running = false;
         state.currentRunSamples = [];
         updateSimStatusHeader();
-        showToast("Simulador reiniciado a 45 m");
+        showToast(`Simulador reiniciado a ${state.initialDistanceM} m`);
       });
 
       document.getElementById("btnToggleAudio").addEventListener("click", () => {
@@ -971,6 +1019,12 @@
       });
 
       document.getElementById("btnConfirmSaveSupabase").addEventListener("click", () => {
+        const inputName = document.getElementById("inputCustomSimName");
+        const customName = (inputName && inputName.value.trim()) ? inputName.value.trim() : state.currentSimId;
+        state.currentSimId = customName;
+        state.currentRunSamples.forEach((s) => {
+          s.simulacion_id = customName;
+        });
         document.getElementById("modalConfirmSave").classList.add("hidden");
         saveBatchToSupabase(state.currentRunSamples);
       });
