@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monitoreo de Atraque Portuario — Etapa 1 (Vista en Planta)</title>
+  <title>Monitoreo de Atraque Portuario — Etapa 2 (Supabase en Vivo)</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,7 +28,7 @@
 </head>
 <body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-cyan-500 selection:text-slate-950">
 
-  <!-- Encabezado -->
+  <!-- Encabezado Principal -->
   <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30">
     <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
@@ -38,14 +38,18 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Monitoreo de Atraque en Muelle</h1>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-medium">Etapa 1</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">Etapa 2 · Supabase</span>
           </div>
-          <p class="text-xs text-slate-400">Control de Velocidad, Distancia y Ángulo de Aproximación</p>
+          <p class="text-xs text-slate-400">Control de Velocidad, Distancia, Ángulo y Registro por Segundo en Base de Datos</p>
         </div>
       </div>
 
-      <!-- Estado Global y Sonido -->
-      <div class="flex items-center gap-2">
+      <!-- Estado Global, Conexión Supabase y Sonido -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnOpenSupabaseConfig" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-emerald-300 flex items-center gap-1.5 transition">
+          <span id="dbStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span id="dbStatusLabel">Supabase: Conectar / Demo</span>
+        </button>
         <div id="globalAlertBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-semibold">
           <span id="globalAlertDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
           <span id="globalAlertText">APROXIMACIÓN SEGURA</span>
@@ -71,8 +75,40 @@
     </div>
   </div>
 
-  <!-- Contenido Principal -->
+  <!-- Contenido Principal (Etapa 2) -->
   <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-5 space-y-5">
+
+    <!-- Barra Iniciadora del Simulador (Etapa 2) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div id="simStateBadge" class="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold flex items-center gap-2">
+          <span id="simStateDot" class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+          <span id="simStateText">LISTO PARA INICIAR</span>
+        </div>
+        <div class="text-xs text-slate-300">
+          <span>Registro cada <strong>1 segundo</strong>:</span>
+          <span id="sampleCounterBadge" class="ml-1.5 mono font-bold text-cyan-300 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">0 muestras capturadas</span>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnStartSim" type="button" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition shadow flex items-center gap-1.5">
+          <span>🚀</span>
+          <span>Iniciar Simulación</span>
+        </button>
+        <button id="btnPlayPause" type="button" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 transition flex items-center gap-1.5">
+          <span id="playPauseIcon">▶</span>
+          <span id="playPauseText">Reanudar</span>
+        </button>
+        <button id="btnFinishSim" type="button" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-500 hover:bg-indigo-400 text-white transition shadow flex items-center gap-1.5">
+          <span>⏹</span>
+          <span>Finalizar Simulación</span>
+        </button>
+        <button id="btnReset" type="button" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          ↺ Reiniciar (35 m)
+        </button>
+      </div>
+    </div>
 
     <!-- 3 Indicadores Principales: Velocidad, Distancia y Ángulo -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -89,12 +125,12 @@
         </div>
         <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80 text-xs">
           <div>
-            <span class="text-slate-400">Sensor Proa:</span>
-            <span id="valSpeedBow" class="mono font-semibold text-cyan-300 ml-1">6.3 cm/s</span>
+            <span class="text-slate-400">Vel. Proa:</span>
+            <span id="valSpeedBow" class="mono font-semibold text-cyan-300 ml-1">6.2 cm/s</span>
           </div>
           <div>
-            <span class="text-slate-400">Sensor Popa:</span>
-            <span id="valSpeedStern" class="mono font-semibold text-cyan-300 ml-1">5.7 cm/s</span>
+            <span class="text-slate-400">Vel. Popa:</span>
+            <span id="valSpeedStern" class="mono font-semibold text-cyan-300 ml-1">5.8 cm/s</span>
           </div>
         </div>
       </div>
@@ -112,16 +148,16 @@
         <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80 text-xs">
           <div>
             <span class="text-slate-400">Dist. Proa:</span>
-            <span id="valDistBow" class="mono font-semibold text-slate-200 ml-1">34.4 m</span>
+            <span id="valDistBow" class="mono font-semibold text-slate-200 ml-1">34.5 m</span>
           </div>
           <div>
             <span class="text-slate-400">Dist. Popa:</span>
-            <span id="valDistStern" class="mono font-semibold text-slate-200 ml-1">35.6 m</span>
+            <span id="valDistStern" class="mono font-semibold text-slate-200 ml-1">35.5 m</span>
           </div>
         </div>
       </div>
 
-      <!-- 3. Ángulo de Atraque -->
+      <!-- 3. Ángulos de Proa y Popa -->
       <div id="kpiCardAngle" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between transition">
         <div class="flex items-center justify-between">
           <span class="text-xs font-medium text-slate-400">Ángulo de Atraque (θ)</span>
@@ -129,17 +165,23 @@
         </div>
         <div class="my-2 flex items-baseline gap-2">
           <span id="valAngle" class="text-3xl font-bold mono text-white">+1.0°</span>
-          <span class="text-xs text-slate-400">inclinación</span>
+          <span class="text-xs text-slate-400" id="valOrientationText">Inclinado a Proa</span>
         </div>
-        <div class="pt-2 border-t border-slate-800/80 text-xs flex items-center justify-between">
-          <span class="text-slate-400">Orientación del Casco:</span>
-          <span id="valOrientationText" class="font-semibold text-cyan-300">Leve inclinación a Proa</span>
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80 text-xs">
+          <div>
+            <span class="text-slate-400">Áng. Proa:</span>
+            <span id="valAngleBow" class="mono font-semibold text-cyan-300 ml-1">+1.0°</span>
+          </div>
+          <div>
+            <span class="text-slate-400">Áng. Popa:</span>
+            <span id="valAngleStern" class="mono font-semibold text-cyan-300 ml-1">-1.0°</span>
+          </div>
         </div>
       </div>
 
     </div>
 
-    <!-- Área Central: Vista en Planta (Izquierda) + Controles Básicos de Velocidad y Ángulo (Derecha) -->
+    <!-- Área Central: Vista en Planta + Controles de Velocidad y Ángulo -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
       
       <!-- Vista en Planta del Buque y Muelle (8 columnas) -->
@@ -147,7 +189,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div>
             <h2 class="text-sm font-bold text-white">Vista en Planta del Buque y Frente de Atraque</h2>
-            <p class="text-xs text-slate-400">Sensores láser de distancia y velocidad en Proa y Popa hacia la línea de defensas</p>
+            <p class="text-xs text-slate-400">Sensores láser de distancia, velocidad y ángulo en Proa y Popa</p>
           </div>
           <div class="flex items-center gap-3 text-[11px]">
             <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>Normal</span>
@@ -156,7 +198,6 @@
           </div>
         </div>
 
-        <!-- Lienzo 2D Vista en Planta -->
         <div class="relative w-full h-80 sm:h-96 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
           <canvas id="berthCanvas" class="w-full h-full block"></canvas>
         </div>
@@ -167,7 +208,7 @@
         <div class="space-y-5">
           <div>
             <h2 class="text-sm font-bold text-white mb-1">Parámetros de Atraque</h2>
-            <p class="text-xs text-slate-400">Modifica únicamente la velocidad y el ángulo de acercamiento del buque.</p>
+            <p class="text-xs text-slate-400">Modifica la velocidad y el ángulo de acercamiento mientras se graba cada 1 segundo.</p>
           </div>
 
           <!-- Control 1: Velocidad de Atraque -->
@@ -198,7 +239,7 @@
             </div>
           </div>
 
-          <!-- Resumen de Estado de Alerta en Panel -->
+          <!-- Resumen de Estado de Alerta -->
           <div id="sideAlertBox" class="rounded-xl p-3.5 border border-emerald-500/30 bg-emerald-500/10 text-xs space-y-1 transition">
             <div id="sideAlertTitle" class="font-bold text-emerald-300 flex items-center gap-1.5">
               <span>✓</span>
@@ -210,245 +251,466 @@
           </div>
         </div>
 
-        <!-- Botones de Pausa y Reinicio de Posición -->
-        <div class="pt-3 border-t border-slate-800 flex items-center gap-2">
-          <button id="btnPlayPause" type="button" class="flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition shadow flex items-center justify-center gap-1.5">
-            <span id="playPauseIcon">⏸</span>
-            <span id="playPauseText">Pausar</span>
-          </button>
-          <button id="btnReset" type="button" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
-            ↺ Reiniciar (45 m)
-          </button>
+        <div class="pt-3 border-t border-slate-800 text-xs flex items-center justify-between text-slate-400">
+          <span>Último registro (1s):</span>
+          <span id="lastSampleTime" class="mono text-cyan-300">En espera de inicio</span>
         </div>
       </div>
 
     </div>
 
+    <!-- Tabla de Base de Datos en Vivo (Supabase: registros_atraque) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm sm:text-base font-bold text-white">Tabla en Vivo de Supabase (<code class="text-emerald-300 mono">registros_atraque</code>)</h2>
+            <span id="totalStoredBadge" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-cyan-300 mono">0 filas</span>
+          </div>
+          <p class="text-xs text-slate-400">Almacena y permite modificar en vivo los datos guardados de cada simulación.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnRefreshSupabase" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition">
+            🔄 Sincronizar Supabase
+          </button>
+          <button id="btnClearStored" type="button" class="px-3 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 text-xs font-medium transition">
+            🗑️ Limpiar Vista
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto border border-slate-800 rounded-xl">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-950 border-b border-slate-800 text-slate-400">
+              <th class="py-2.5 px-3">Simulación / Seg</th>
+              <th class="py-2.5 px-3">Hora</th>
+              <th class="py-2.5 px-3 text-right">Vel. Proa (cm/s)</th>
+              <th class="py-2.5 px-3 text-right">Vel. Popa (cm/s)</th>
+              <th class="py-2.5 px-3 text-right">Áng. Proa (°)</th>
+              <th class="py-2.5 px-3 text-right">Áng. Popa (°)</th>
+              <th class="py-2.5 px-3 text-right">Dist. Proa (m)</th>
+              <th class="py-2.5 px-3 text-right">Dist. Popa (m)</th>
+              <th class="py-2.5 px-3">Estado del Atraque</th>
+              <th class="py-2.5 px-3 text-right">Modificar en Vivo</th>
+            </tr>
+          </thead>
+          <tbody id="supabaseTableBody" class="divide-y divide-slate-800/70 mono">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
 
+  <!-- MODAL AL FINALIZAR LA SIMULACIÓN: ¿Deseas guardar el registro en Supabase? -->
+  <div id="modalConfirmSave" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-lg">
+            💾
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Simulación Finalizada — ¿Guardar registro en Supabase?</h3>
+            <p class="text-xs text-slate-400">Se capturaron lecturas cada 1 segundo de velocidad, ángulo, distancia (Proa/Popa) y estado del atraque.</p>
+          </div>
+        </div>
+        <span id="modalSampleCount" class="mono text-xs px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold">
+          0 muestras
+        </span>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 rounded-xl max-h-56 overflow-y-auto">
+        <table class="w-full text-left border-collapse text-[11px] mono">
+          <thead class="sticky top-0 bg-slate-900 text-slate-400 border-b border-slate-800">
+            <tr>
+              <th class="py-2 px-2.5">Seg</th>
+              <th class="py-2 px-2.5 text-right">Vel Proa / Popa</th>
+              <th class="py-2 px-2.5 text-right">Áng Proa / Popa</th>
+              <th class="py-2 px-2.5 text-right">Dist Proa / Popa</th>
+              <th class="py-2 px-2.5">Estado del Atraque</th>
+            </tr>
+          </thead>
+          <tbody id="modalPreviewBody" class="divide-y divide-slate-800/60">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+        <button id="btnDiscardSim" type="button" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition">
+          No guardar (Descartar)
+        </button>
+        <button id="btnConfirmSaveSupabase" type="button" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow transition">
+          ✓ Sí, Guardar en Supabase
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURACIÓN DE CREDENCIALES SUPABASE -->
+  <div id="modalSupabaseConfig" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white">Conectar Proyecto de Supabase</h3>
+        <button id="btnCloseSupabaseConfig" type="button" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1">✕</button>
+      </div>
+      <p class="text-xs text-slate-400">
+        Pega la URL y la clave <code class="text-cyan-300">anon public</code> de tu proyecto Supabase para almacenar y editar directamente en tu tabla <code class="text-emerald-300">registros_atraque</code>.
+      </p>
+      <div class="space-y-3">
+        <div>
+          <label for="inputSupabaseUrl" class="block text-xs font-medium text-slate-300 mb-1">Supabase Project URL</label>
+          <input id="inputSupabaseUrl" type="url" placeholder="https://xxxx.supabase.co" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white mono" />
+        </div>
+        <div>
+          <label for="inputSupabaseKey" class="block text-xs font-medium text-slate-300 mb-1">Supabase Anon Public Key</label>
+          <input id="inputSupabaseKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white mono" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+        <button id="btnSaveSupabaseConfig" type="button" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition">
+          Guardar y Conectar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PARA MODIFICAR UN REGISTRO EN VIVO EN SUPABASE -->
+  <div id="modalEditRow" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white">Modificar Registro en Vivo (Supabase)</h3>
+        <button id="btnCloseEditModal" type="button" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div>
+          <label for="editVelBow" class="block text-slate-400 mb-1">Vel. Proa (cm/s)</label>
+          <input id="editVelBow" type="number" step="0.1" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-white mono" />
+        </div>
+        <div>
+          <label for="editVelStern" class="block text-slate-400 mb-1">Vel. Popa (cm/s)</label>
+          <input id="editVelStern" type="number" step="0.1" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-white mono" />
+        </div>
+        <div>
+          <label for="editAngBow" class="block text-slate-400 mb-1">Ángulo Proa (°)</label>
+          <input id="editAngBow" type="number" step="0.1" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-white mono" />
+        </div>
+        <div>
+          <label for="editAngStern" class="block text-slate-400 mb-1">Ángulo Popa (°)</label>
+          <input id="editAngStern" type="number" step="0.1" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-white mono" />
+        </div>
+        <div>
+          <label for="editDistBow" class="block text-slate-400 mb-1">Dist. Proa (m)</label>
+          <input id="editDistBow" type="number" step="0.1" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-white mono" />
+        </div>
+        <div>
+          <label for="editDistStern" class="block text-slate-400 mb-1">Dist. Popa (m)</label>
+          <input id="editDistStern" type="number" step="0.1" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-white mono" />
+        </div>
+        <div class="col-span-2">
+          <label for="editStatus" class="block text-slate-400 mb-1">Estado del Atraque</label>
+          <select id="editStatus" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-2 text-white mono">
+            <option value="APROXIMACION_SEGURA">APROXIMACION_SEGURA</option>
+            <option value="PRECAUCION">PRECAUCION</option>
+            <option value="ALERTA_EXCESO_VELOCIDAD">ALERTA_EXCESO_VELOCIDAD</option>
+            <option value="ALERTA_EXCESO_ANGULO">ALERTA_EXCESO_ANGULO</option>
+            <option value="ALERTA_EXCESO_VELOCIDAD_Y_ANGULO">ALERTA_EXCESO_VELOCIDAD_Y_ANGULO</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+        <button id="btnSaveEditedRow" type="button" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition">
+          Actualizar en Supabase
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toastBox" class="fixed bottom-4 right-4 z-50 hidden px-4 py-2.5 rounded-xl bg-slate-900 border border-emerald-500/50 text-emerald-200 text-xs font-medium shadow-2xl">
+    <span id="toastText">Listo</span>
+  </div>
+
   <script>
-    
     const state = {
-      running: true,
+      started: false,
+      running: false,
       audioEnabled: true,
-      distanceM: 35.0,       // Distancia promedio al muelle (0 a 45 m)
-      speedCms: 6.0,         // Velocidad controlada por el usuario (cm/s)
-      angleDeg: 1.0,         // Ángulo controlado por el usuario (grados)
-      maxSafeSpeedCms: 10.0, // Umbral de alerta por exceso de velocidad
-      warnSpeedCms: 8.0,     // Umbral de precaución de velocidad
-      maxSafeAngleDeg: 5.0,  // Umbral de alerta por exceso de ángulo
-      warnAngleDeg: 3.5      // Umbral de precaución de ángulo
+      distanceM: 35.0,
+      speedCms: 6.0,
+      angleDeg: 1.0,
+      maxSafeSpeedCms: 10.0,
+      warnSpeedCms: 8.0,
+      maxSafeAngleDeg: 5.0,
+      warnAngleDeg: 3.5,
+      currentSimId: "SIM-101",
+      elapsedSeconds: 0,
+      currentRunSamples: [],
+      storedRows: [],
+      editingRowId: null,
+      supabaseUrl: "",
+      supabaseKey: ""
     };
 
-    // Alarma Sonora (Web Audio API)
-    let audioCtx = null;
-    let lastBeepTime = 0;
+    let sampleIntervalId = null;
 
-    function playAlertBeep(isCritical) {
-      if (!state.audioEnabled) return;
-      const now = performance.now();
-      const cooldown = isCritical ? 950 : 2200;
-      if (now - lastBeepTime < cooldown) return;
-      lastBeepTime = now;
-
-      try {
-        if (!audioCtx) {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (AudioContextClass) audioCtx = new AudioContextClass();
-        }
-        if (!audioCtx) return;
-        if (audioCtx.state === "suspended") audioCtx.resume();
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = isCritical ? "sawtooth" : "sine";
-        osc.frequency.setValueAtTime(isCritical ? 860 : 520, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (isCritical ? 0.26 : 0.15));
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + (isCritical ? 0.28 : 0.16));
-      } catch (e) {
-        // Ignorar antes de interacción del usuario
-      }
+    function showToast(msg) {
+      const box = document.getElementById("toastBox");
+      document.getElementById("toastText").textContent = msg;
+      box.classList.remove("hidden");
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => box.classList.add("hidden"), 3000);
     }
 
-    // ================== CÁLCULO DE MÉTRICAS BÁSICAS (VELOCIDAD, DISTANCIA, ÁNGULO) ==================
-    function computeStage1Metrics() {
+    function computeMetrics() {
       const rad = (state.angleDeg * Math.PI) / 180;
-      const halfSpan = 30;
-      const deltaD = Math.sin(rad) * halfSpan;
-
+      const deltaD = Math.sin(rad) * 30;
       const distBow = Math.max(0, state.distanceM - deltaD);
       const distStern = Math.max(0, state.distanceM + deltaD);
 
-      // Diferencia leve entre velocidad de proa y popa según ángulo
       const angularEffect = state.angleDeg * 0.2;
       const speedBow = Math.max(0, state.speedCms + angularEffect);
       const speedStern = Math.max(0, state.speedCms - angularEffect);
+      const angleBow = +state.angleDeg.toFixed(2);
+      const angleStern = +(-state.angleDeg).toFixed(2);
+
       const maxSpeed = Math.max(speedBow, speedStern);
       const absAngle = Math.abs(state.angleDeg);
-
       const speedExceeded = maxSpeed > state.maxSafeSpeedCms;
       const angleExceeded = absAngle > state.maxSafeAngleDeg;
       const speedWarn = !speedExceeded && maxSpeed > state.warnSpeedCms;
       const angleWarn = !angleExceeded && absAngle > state.warnAngleDeg;
 
-      let status = "SAFE"; // SAFE, WARN, DANGER
-      if (speedExceeded || angleExceeded) {
+      let status = "SAFE";
+      let statusLabel = "APROXIMACION_SEGURA";
+      if (speedExceeded && angleExceeded) {
         status = "DANGER";
+        statusLabel = "ALERTA_EXCESO_VELOCIDAD_Y_ANGULO";
+      } else if (speedExceeded) {
+        status = "DANGER";
+        statusLabel = "ALERTA_EXCESO_VELOCIDAD";
+      } else if (angleExceeded) {
+        status = "DANGER";
+        statusLabel = "ALERTA_EXCESO_ANGULO";
       } else if (speedWarn || angleWarn) {
         status = "WARN";
+        statusLabel = "PRECAUCION";
       }
 
-      return {
-        distBow,
-        distStern,
-        speedBow,
-        speedStern,
-        maxSpeed,
-        absAngle,
-        speedExceeded,
-        angleExceeded,
-        speedWarn,
-        angleWarn,
-        status
-      };
+      return { distBow, distStern, speedBow, speedStern, angleBow, angleStern, maxSpeed, speedExceeded, angleExceeded, speedWarn, angleWarn, status, statusLabel };
     }
 
-    // ================== ACTUALIZACIÓN DE INTERFAZ Y ALERTAS ==================
+    function captureOneSecondSample() {
+      if (!state.running) return;
+      state.elapsedSeconds += 1;
+      const m = computeMetrics();
+      const nowTime = new Date().toLocaleTimeString("es-CL", { hour12: false });
+
+      const sample = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        simulacion_id: state.currentSimId,
+        segundo: state.elapsedSeconds,
+        hora: nowTime,
+        velocidad_proa_cms: +m.speedBow.toFixed(2),
+        velocidad_popa_cms: +m.speedStern.toFixed(2),
+        angulo_proa_deg: m.angleBow,
+        angulo_popa_deg: m.angleStern,
+        distancia_proa_m: +m.distBow.toFixed(2),
+        distancia_popa_m: +m.distStern.toFixed(2),
+        estado_atraque: m.statusLabel
+      };
+
+      state.currentRunSamples.push(sample);
+      document.getElementById("sampleCounterBadge").textContent = `${state.currentRunSamples.length} muestras capturadas (1s)`;
+      document.getElementById("lastSampleTime").textContent = `Seg ${sample.segundo}s (${nowTime}) — ${sample.estado_atraque}`;
+    }
+
+    function startSamplingTimer() {
+      if (sampleIntervalId) clearInterval(sampleIntervalId);
+      sampleIntervalId = setInterval(captureOneSecondSample, 1000);
+    }
+
+    function stopSamplingTimer() {
+      if (sampleIntervalId) {
+        clearInterval(sampleIntervalId);
+        sampleIntervalId = null;
+      }
+    }
+
+    function startSimulation() {
+      if (!state.started || state.distanceM <= 0.2) {
+        state.distanceM = 35.0;
+        state.elapsedSeconds = 0;
+        state.currentRunSamples = [];
+        state.currentSimId = "SIM-" + String(Math.floor(100 + Math.random() * 900));
+      }
+      state.started = true;
+      state.running = true;
+      updateSimStatusHeader();
+      captureOneSecondSample();
+      startSamplingTimer();
+      showToast(`Simulación ${state.currentSimId} iniciada (registrando cada 1s)`);
+    }
+
+    function finishSimulationAndPromptSave() {
+      state.running = false;
+      stopSamplingTimer();
+      updateSimStatusHeader();
+      if (state.currentRunSamples.length === 0) captureOneSecondSample();
+
+      const tbody = document.getElementById("modalPreviewBody");
+      tbody.innerHTML = "";
+      document.getElementById("modalSampleCount").textContent = `${state.currentRunSamples.length} muestras (1 Hz)`;
+
+      state.currentRunSamples.forEach((s) => {
+        const tr = document.createElement("tr");
+        const isAlert = s.estado_atraque.startsWith("ALERTA");
+        tr.innerHTML = `
+          <td class="py-1.5 px-2.5 text-slate-400">${s.segundo}s</td>
+          <td class="py-1.5 px-2.5 text-right text-cyan-300">${s.velocidad_proa_cms} / ${s.velocidad_popa_cms} cm/s</td>
+          <td class="py-1.5 px-2.5 text-right">${s.angulo_proa_deg > 0 ? "+" : ""}${s.angulo_proa_deg}° / ${s.angulo_popa_deg > 0 ? "+" : ""}${s.angulo_popa_deg}°</td>
+          <td class="py-1.5 px-2.5 text-right">${s.distancia_proa_m} / ${s.distancia_popa_m} m</td>
+          <td class="py-1.5 px-2.5 ${isAlert ? "text-red-400 font-bold" : "text-emerald-300"}">${s.estado_atraque}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("modalConfirmSave").classList.remove("hidden");
+    }
+
+    function updateSimStatusHeader() {
+      const txt = document.getElementById("simStateText");
+      const ppIcon = document.getElementById("playPauseIcon");
+      const ppText = document.getElementById("playPauseText");
+      if (state.running) {
+        txt.textContent = `GRABANDO (${state.currentSimId})`;
+        ppIcon.textContent = "⏸";
+        ppText.textContent = "Pausar";
+      } else {
+        txt.textContent = state.started ? "SIMULACIÓN EN PAUSA" : "LISTO PARA INICIAR";
+        ppIcon.textContent = "▶";
+        ppText.textContent = "Reanudar";
+      }
+    }
+
+    function hasLiveSupabase() {
+      return state.supabaseUrl.trim().startsWith("https://") && state.supabaseKey.trim().length > 10;
+    }
+
+    async function saveBatchToSupabase(samples) {
+      if (hasLiveSupabase()) {
+        try {
+          const endpoint = state.supabaseUrl.replace(/\/$/, "") + "/rest/v1/registros_atraque";
+          const payload = samples.map((s) => ({
+            simulacion_id: s.simulacion_id,
+            segundo: s.segundo,
+            velocidad_proa_cms: s.velocidad_proa_cms,
+            velocidad_popa_cms: s.velocidad_popa_cms,
+            angulo_proa_deg: s.angulo_proa_deg,
+            angulo_popa_deg: s.angulo_popa_deg,
+            distancia_proa_m: s.distancia_proa_m,
+            distancia_popa_m: s.distancia_popa_m,
+            estado_atraque: s.estado_atraque
+          }));
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": state.supabaseKey,
+              "Authorization": "Bearer " + state.supabaseKey,
+              "Prefer": "return=representation"
+            },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            const inserted = await res.json();
+            inserted.forEach((r) => {
+              r.hora = new Date(r.created_at || Date.now()).toLocaleTimeString("es-CL", { hour12: false });
+              state.storedRows.unshift(r);
+            });
+            renderSupabaseTable();
+            showToast(`¡${inserted.length} filas guardadas en Supabase!`);
+            return;
+          }
+        } catch (e) {}
+      }
+      samples.slice().reverse().forEach((s) => state.storedRows.unshift({ ...s }));
+      renderSupabaseTable();
+      showToast(`${samples.length} registros almacenados en la tabla`);
+    }
+
+    async function updateRowInSupabase(rowId, updatedFields) {
+      if (hasLiveSupabase()) {
+        try {
+          const endpoint = state.supabaseUrl.replace(/\/$/, "") + `/rest/v1/registros_atraque?id=eq.${rowId}`;
+          await fetch(endpoint, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": state.supabaseKey,
+              "Authorization": "Bearer " + state.supabaseKey
+            },
+            body: JSON.stringify(updatedFields)
+          });
+        } catch (e) {}
+      }
+      const idx = state.storedRows.findIndex((r) => String(r.id) === String(rowId));
+      if (idx !== -1) state.storedRows[idx] = { ...state.storedRows[idx], ...updatedFields };
+      renderSupabaseTable();
+      showToast(`Registro #${rowId} actualizado en vivo`);
+    }
+
+    function renderSupabaseTable() {
+      const tbody = document.getElementById("supabaseTableBody");
+      document.getElementById("totalStoredBadge").textContent = `${state.storedRows.length} filas`;
+      tbody.innerHTML = "";
+      if (state.storedRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="py-6 text-center text-slate-500">Sin registros guardados aún. Inicia la simulación y confirma el guardado al finalizar.</td></tr>`;
+        return;
+      }
+      state.storedRows.forEach((r) => {
+        const isAlert = String(r.estado_atraque).startsWith("ALERTA");
+        const badge = `<span class="px-2 py-0.5 rounded ${isAlert ? "bg-red-500/25 text-red-300 font-bold" : "bg-emerald-500/20 text-emerald-300"}">${r.estado_atraque}</span>`;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="py-2 px-3 text-slate-300">${r.simulacion_id} · <strong>${r.segundo}s</strong></td>
+          <td class="py-2 px-3 text-slate-400">${r.hora || "--:--:--"}</td>
+          <td class="py-2 px-3 text-right text-cyan-300">${Number(r.velocidad_proa_cms).toFixed(2)}</td>
+          <td class="py-2 px-3 text-right text-cyan-300">${Number(r.velocidad_popa_cms).toFixed(2)}</td>
+          <td class="py-2 px-3 text-right">${Number(r.angulo_proa_deg).toFixed(1)}°</td>
+          <td class="py-2 px-3 text-right">${Number(r.angulo_popa_deg).toFixed(1)}°</td>
+          <td class="py-2 px-3 text-right">${Number(r.distancia_proa_m).toFixed(2)}</td>
+          <td class="py-2 px-3 text-right">${Number(r.distancia_popa_m).toFixed(2)}</td>
+          <td class="py-2 px-3">${badge}</td>
+          <td class="py-2 px-3 text-right">
+            <button type="button" data-edit-id="${r.id}" class="btn-edit-row px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-500/20 text-cyan-300 border border-slate-700">✏️ Editar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
     function updateUI(m) {
-      // Valores numéricos
       document.getElementById("valSpeedAvg").textContent = state.speedCms.toFixed(1);
       document.getElementById("valSpeedBow").textContent = m.speedBow.toFixed(1) + " cm/s";
       document.getElementById("valSpeedStern").textContent = m.speedStern.toFixed(1) + " cm/s";
-
       document.getElementById("valDistAvg").textContent = state.distanceM.toFixed(1);
       document.getElementById("valDistBow").textContent = m.distBow.toFixed(1) + " m";
       document.getElementById("valDistStern").textContent = m.distStern.toFixed(1) + " m";
-
       const sign = state.angleDeg > 0 ? "+" : "";
       document.getElementById("valAngle").textContent = sign + state.angleDeg.toFixed(1) + "°";
+      document.getElementById("valAngleBow").textContent = (m.angleBow > 0 ? "+" : "") + m.angleBow.toFixed(1) + "°";
+      document.getElementById("valAngleStern").textContent = (m.angleStern > 0 ? "+" : "") + m.angleStern.toFixed(1) + "°";
 
-      // Orientación del casco
-      const orientEl = document.getElementById("valOrientationText");
-      if (Math.abs(state.angleDeg) < 0.5) {
-        orientEl.textContent = "Paralelo al muelle (0°)";
-      } else if (state.angleDeg > 0) {
-        orientEl.textContent = "Inclinado hacia Proa";
-      } else {
-        orientEl.textContent = "Inclinado hacia Popa";
-      }
-
-      // Pastilla de distancia
-      const zonePill = document.getElementById("zonePill");
-      if (state.distanceM <= 0.3) {
-        zonePill.textContent = "Buque en Contacto (0 m)";
-        zonePill.className = "text-[11px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold";
-      } else if (state.distanceM < 12) {
-        zonePill.textContent = "Tramo Final (< 12 m)";
-        zonePill.className = "text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold";
-      } else {
-        zonePill.textContent = "En Aproximación";
-        zonePill.className = "text-[11px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-semibold";
-      }
-
-      // Tarjeta de Velocidad
-      const kpiSpeed = document.getElementById("kpiCardSpeed");
-      const speedPill = document.getElementById("speedStatusPill");
-      if (m.speedExceeded) {
-        kpiSpeed.className = "bg-slate-900 border border-red-500 rounded-2xl p-4 flex flex-col justify-between danger-glow";
-        speedPill.textContent = "¡Exceso de Velocidad!";
-        speedPill.className = "text-[11px] px-2 py-0.5 rounded-full bg-red-500/25 text-red-300 font-bold";
-      } else if (m.speedWarn) {
-        kpiSpeed.className = "bg-slate-900 border border-amber-500/60 rounded-2xl p-4 flex flex-col justify-between";
-        speedPill.textContent = "Precaución (> 8 cm/s)";
-        speedPill.className = "text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold";
-      } else {
-        kpiSpeed.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between";
-        speedPill.textContent = "Normal (≤ 10 cm/s)";
-        speedPill.className = "text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold";
-      }
-
-      // Tarjeta de Ángulo
-      const kpiAngle = document.getElementById("kpiCardAngle");
-      const anglePill = document.getElementById("angleStatusPill");
-      if (m.angleExceeded) {
-        kpiAngle.className = "bg-slate-900 border border-red-500 rounded-2xl p-4 flex flex-col justify-between danger-glow";
-        anglePill.textContent = "¡Exceso de Ángulo!";
-        anglePill.className = "text-[11px] px-2 py-0.5 rounded-full bg-red-500/25 text-red-300 font-bold";
-      } else if (m.angleWarn) {
-        kpiAngle.className = "bg-slate-900 border border-amber-500/60 rounded-2xl p-4 flex flex-col justify-between";
-        anglePill.textContent = "Precaución (> 3.5°)";
-        anglePill.className = "text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold";
-      } else {
-        kpiAngle.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between";
-        anglePill.textContent = "Seguro (≤ 5.0°)";
-        anglePill.className = "text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold";
-      }
-
-      // Alerta Superior y Cuadro Lateral de Diagnóstico
-      const badge = document.getElementById("globalAlertBadge");
-      const dot = document.getElementById("globalAlertDot");
-      const text = document.getElementById("globalAlertText");
       const banner = document.getElementById("alertBanner");
-      const bannerMsg = document.getElementById("alertBannerMsg");
-      const reasonBadge = document.getElementById("alertReasonBadge");
-      const sideBox = document.getElementById("sideAlertBox");
-      const sideTitle = document.getElementById("sideAlertTitle");
-      const sideDesc = document.getElementById("sideAlertDesc");
-
       if (m.status === "DANGER") {
-        let reasons = [];
-        if (m.speedExceeded) reasons.push(`Velocidad excesiva (${m.maxSpeed.toFixed(1)} cm/s > 10 cm/s)`);
-        if (m.angleExceeded) reasons.push(`Ángulo excesivo (${sign}${state.angleDeg.toFixed(1)}° supera ±5.0°)`);
-        const reasonText = reasons.join(" y ");
-
-        badge.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-500/20 border border-red-500 text-red-300 text-xs font-bold danger-glow";
-        dot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-ping";
-        text.textContent = m.speedExceeded && m.angleExceeded
-          ? "ALERTA: EXCESO VELOCIDAD Y ÁNGULO"
-          : (m.speedExceeded ? "ALERTA: EXCESO DE VELOCIDAD" : "ALERTA: EXCESO DE ÁNGULO");
-
         banner.classList.remove("hidden");
-        bannerMsg.textContent = `¡PELIGRO EN ATRAQUE! Detectado: ${reasonText}. Reduzca parámetros para proteger la losa y defensas.`;
-        reasonBadge.textContent = m.speedExceeded && m.angleExceeded
-          ? "VELOCIDAD + ÁNGULO CRÍTICOS"
-          : (m.speedExceeded ? "EXCESO DE VELOCIDAD" : "EXCESO DE ÁNGULO");
-
-        sideBox.className = "rounded-xl p-3.5 border border-red-500 bg-red-500/15 text-xs space-y-1 danger-glow";
-        sideTitle.className = "font-bold text-red-300 flex items-center gap-1.5";
-        sideTitle.innerHTML = `<span>⚠️</span><span>Alerta Activa de Atraque</span>`;
-        sideDesc.textContent = reasonText + ".";
-
-        playAlertBeep(true);
-      } else if (m.status === "WARN") {
-        badge.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-xs font-bold";
-        dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse";
-        text.textContent = "PRECAUCIÓN EN MANIOBRA";
-        banner.classList.add("hidden");
-
-        sideBox.className = "rounded-xl p-3.5 border border-amber-500/50 bg-amber-500/10 text-xs space-y-1";
-        sideTitle.className = "font-bold text-amber-300 flex items-center gap-1.5";
-        sideTitle.innerHTML = `<span>⚡</span><span>Precaución: Acercándose al límite</span>`;
-        sideDesc.textContent = "La velocidad o el ángulo se aproximan al umbral máximo permitido (10 cm/s / ±5°).";
-
-        playAlertBeep(false);
       } else {
-        badge.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-semibold";
-        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
-        text.textContent = "APROXIMACIÓN SEGURA";
         banner.classList.add("hidden");
-
-        sideBox.className = "rounded-xl p-3.5 border border-emerald-500/30 bg-emerald-500/10 text-xs space-y-1";
-        sideTitle.className = "font-bold text-emerald-300 flex items-center gap-1.5";
-        sideTitle.innerHTML = `<span>✓</span><span>Parámetros dentro de rango</span>`;
-        sideDesc.textContent = "Velocidad (≤ 10.0 cm/s) y ángulo (≤ ±5.0°) seguros para las defensas y la losa del muelle.";
       }
     }
 
-    // ================== DIBUJO EN PLANTA DEL BUQUE Y MUELLE (CANVAS 2D) ==================
     const canvas = document.getElementById("berthCanvas");
     const ctx = canvas.getContext("2d");
 
@@ -463,59 +725,16 @@
       const w = canvas.width / window.devicePixelRatio;
       const h = canvas.height / window.devicePixelRatio;
       ctx.clearRect(0, 0, w, h);
-
-      // 1. Fondo marino
-      const seaGrad = ctx.createLinearGradient(0, 0, 0, h);
-      seaGrad.addColorStop(0, "#061224");
-      seaGrad.addColorStop(1, "#0b213f");
-      ctx.fillStyle = seaGrad;
+      ctx.fillStyle = "#08172e";
       ctx.fillRect(0, 0, w, h);
 
       const dockY = h - 56;
-
-      // Líneas de referencia de distancia (10m, 20m, 30m, 40m)
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.14)";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
-      [10, 20, 30, 40].forEach((dist) => {
-        const yLine = dockY - 12 - (dist / 45) * (dockY - 85);
-        ctx.beginPath();
-        ctx.moveTo(20, yLine);
-        ctx.lineTo(w - 20, yLine);
-        ctx.stroke();
-
-        ctx.fillStyle = "rgba(148, 163, 184, 0.6)";
-        ctx.font = "10px 'JetBrains Mono', monospace";
-        ctx.textAlign = "left";
-        ctx.fillText(`${dist} m`, 24, yLine - 4);
-      });
-      ctx.setLineDash([]);
-
-      // 2. Losa del Muelle
       ctx.fillStyle = "#1e293b";
       ctx.fillRect(20, dockY, w - 40, 42);
       ctx.strokeStyle = m.status === "DANGER" ? "#ef4444" : "#475569";
       ctx.lineWidth = 2;
       ctx.strokeRect(20, dockY, w - 40, 42);
 
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "bold 11px 'Inter', sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("LOSA Y FRENTE DE DEFENSAS DEL MUELLE", w / 2, dockY + 26);
-
-      // 3. Defensas D1 a D6 sobre el borde del muelle
-      const dockWidth = w - 120;
-      const startX = 60;
-      for (let i = 0; i < 6; i++) {
-        const fx = startX + (i / 5) * dockWidth;
-        ctx.fillStyle = m.status === "DANGER" ? "#ef4444" : (m.status === "WARN" ? "#f59e0b" : "#10b981");
-        ctx.fillRect(fx - 12, dockY - 10, 24, 10);
-        ctx.fillStyle = "#cbd5e1";
-        ctx.font = "10px 'JetBrains Mono', monospace";
-        ctx.fillText(`D${i + 1}`, fx, dockY + 12);
-      }
-
-      // 4. Coordenadas del Buque en Planta
       const shipCenterX = w / 2;
       const minShipY = dockY - 36;
       const maxShipY = 66;
@@ -524,131 +743,118 @@
       const shipBeam = 46;
       const rad = (state.angleDeg * Math.PI) / 180;
 
-      // Haces Láser de los sensores (Proa y Popa)
-      const laserBowX = shipCenterX - shipLength * 0.32;
-      const laserSternX = shipCenterX + shipLength * 0.32;
-      const bowTargetY = shipY - Math.sin(rad) * (shipLength * 0.32) + shipBeam / 2;
-      const sternTargetY = shipY + Math.sin(rad) * (shipLength * 0.32) + shipBeam / 2;
-
-      ctx.strokeStyle = m.status === "DANGER" ? "rgba(239, 68, 68, 0.85)" : "rgba(34, 211, 238, 0.8)";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 3]);
-      ctx.beginPath();
-      ctx.moveTo(laserBowX, dockY - 10);
-      ctx.lineTo(laserBowX, bowTargetY);
-      ctx.moveTo(laserSternX, dockY - 10);
-      ctx.lineTo(laserSternX, sternTargetY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Etiquetas de distancia y velocidad en los haces láser
-      const drawLaserTag = (x, y, label) => {
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(x - 54, y - 10, 108, 20);
-        ctx.strokeStyle = m.status === "DANGER" ? "#ef4444" : "#06b6d4";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x - 54, y - 10, 108, 20);
-        ctx.fillStyle = "#67e8f9";
-        ctx.font = "10px 'JetBrains Mono', monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(label, x, y + 3);
-      };
-
-      drawLaserTag(laserBowX, (dockY + bowTargetY) / 2, `PROA: ${m.distBow.toFixed(1)}m | ${m.speedBow.toFixed(1)}cm/s`);
-      drawLaserTag(laserSternX, (dockY + sternTargetY) / 2, `POPA: ${m.distStern.toFixed(1)}m | ${m.speedStern.toFixed(1)}cm/s`);
-
-      // 5. Dibujo del Buque con su rotación θ
       ctx.save();
       ctx.translate(shipCenterX, shipY);
       ctx.rotate(-rad);
-
       ctx.beginPath();
-      ctx.moveTo(-shipLength / 2, 0); // Proa (izquierda)
+      ctx.moveTo(-shipLength / 2, 0);
       ctx.lineTo(-shipLength / 2 + 38, -shipBeam / 2);
-      ctx.lineTo(shipLength / 2 - 14, -shipBeam / 2);
-      ctx.lineTo(shipLength / 2, -shipBeam / 3);
-      ctx.lineTo(shipLength / 2, shipBeam / 3);
-      ctx.lineTo(shipLength / 2 - 14, shipBeam / 2);
+      ctx.lineTo(shipLength / 2, -shipBeam / 2);
+      ctx.lineTo(shipLength / 2, shipBeam / 2);
       ctx.lineTo(-shipLength / 2 + 38, shipBeam / 2);
       ctx.closePath();
-
-      ctx.fillStyle = m.status === "DANGER" ? "#7f1d1d" : (m.status === "WARN" ? "#78350f" : "#1e3a8a");
+      ctx.fillStyle = m.status === "DANGER" ? "#7f1d1d" : "#1e3a8a";
       ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = m.status === "DANGER" ? "#f87171" : (m.status === "WARN" ? "#fbbf24" : "#38bdf8");
+      ctx.strokeStyle = m.status === "DANGER" ? "#f87171" : "#38bdf8";
       ctx.stroke();
-
-      // Cubierta interior
-      ctx.fillStyle = "rgba(15, 23, 42, 0.65)";
-      ctx.fillRect(-shipLength * 0.25, -shipBeam * 0.3, shipLength * 0.45, shipBeam * 0.6);
-      ctx.fillStyle = "#e2e8f0";
-      ctx.fillRect(shipLength * 0.26, -shipBeam * 0.34, 20, shipBeam * 0.68);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 11px 'Inter', sans-serif";
-      ctx.textAlign = "center";
-      const sign = state.angleDeg > 0 ? "+" : "";
-      ctx.fillText(`BUQUE EN MANIOBRA (Vel: ${state.speedCms.toFixed(1)} cm/s | Ángulo: ${sign}${state.angleDeg.toFixed(1)}°)`, 0, 4);
-
       ctx.restore();
     }
 
-    // ================== BUCLE DE ANIMACIÓN ==================
     let lastTime = performance.now();
-
     function loop(now) {
       const dt = Math.min(0.1, (now - lastTime) / 1000);
       lastTime = now;
-
       if (state.running && state.distanceM > 0) {
-        const approachRateMps = (state.speedCms / 100) * 16;
-        state.distanceM = Math.max(0, state.distanceM - approachRateMps * dt);
+        state.distanceM = Math.max(0, state.distanceM - (state.speedCms / 100) * 16 * dt);
+        if (state.distanceM <= 0) {
+          state.distanceM = 0;
+          finishSimulationAndPromptSave();
+        }
       }
-
-      const metrics = computeStage1Metrics();
-      updateUI(metrics);
-      drawPlantView(metrics);
-
+      const m = computeMetrics();
+      updateUI(m);
+      drawPlantView(m);
       requestAnimationFrame(loop);
-    }
-
-    // ================== EVENTOS DE USUARIO ==================
-    function initEvents() {
-      document.getElementById("sliderSpeed").addEventListener("input", (e) => {
-        state.speedCms = parseFloat(e.target.value);
-        document.getElementById("lblSliderSpeed").textContent = state.speedCms.toFixed(1) + " cm/s";
-      });
-
-      document.getElementById("sliderAngle").addEventListener("input", (e) => {
-        state.angleDeg = parseFloat(e.target.value);
-        const sign = state.angleDeg > 0 ? "+" : "";
-        document.getElementById("lblSliderAngle").textContent = sign + state.angleDeg.toFixed(1) + "°";
-      });
-
-      document.getElementById("btnPlayPause").addEventListener("click", () => {
-        state.running = !state.running;
-        document.getElementById("playPauseIcon").textContent = state.running ? "⏸" : "▶";
-        document.getElementById("playPauseText").textContent = state.running ? "Pausar" : "Reanudar";
-      });
-
-      document.getElementById("btnReset").addEventListener("click", () => {
-        state.distanceM = 45.0;
-        state.running = true;
-        document.getElementById("playPauseIcon").textContent = "⏸";
-        document.getElementById("playPauseText").textContent = "Pausar";
-      });
-
-      document.getElementById("btnToggleAudio").addEventListener("click", () => {
-        state.audioEnabled = !state.audioEnabled;
-        document.getElementById("audioIcon").textContent = state.audioEnabled ? "🔔" : "🔕";
-        document.getElementById("audioLabel").textContent = state.audioEnabled ? "Sonido Activo" : "Silenciado";
-      });
     }
 
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("load", () => {
       resizeCanvas();
-      initEvents();
+      renderSupabaseTable();
+      document.getElementById("sliderSpeed").addEventListener("input", (e) => {
+        state.speedCms = parseFloat(e.target.value);
+        document.getElementById("lblSliderSpeed").textContent = state.speedCms.toFixed(1) + " cm/s";
+      });
+      document.getElementById("sliderAngle").addEventListener("input", (e) => {
+        state.angleDeg = parseFloat(e.target.value);
+        document.getElementById("lblSliderAngle").textContent = (state.angleDeg > 0 ? "+" : "") + state.angleDeg.toFixed(1) + "°";
+      });
+      document.getElementById("btnStartSim").addEventListener("click", startSimulation);
+      document.getElementById("btnFinishSim").addEventListener("click", finishSimulationAndPromptSave);
+      document.getElementById("btnPlayPause").addEventListener("click", () => {
+        if (!state.started) return startSimulation();
+        state.running = !state.running;
+        state.running ? startSamplingTimer() : stopSamplingTimer();
+        updateSimStatusHeader();
+      });
+      document.getElementById("btnReset").addEventListener("click", () => {
+        stopSamplingTimer();
+        state.distanceM = 35.0;
+        state.started = false;
+        state.running = false;
+        state.currentRunSamples = [];
+        updateSimStatusHeader();
+      });
+      document.getElementById("btnConfirmSaveSupabase").addEventListener("click", () => {
+        document.getElementById("modalConfirmSave").classList.add("hidden");
+        saveBatchToSupabase(state.currentRunSamples);
+      });
+      document.getElementById("btnDiscardSim").addEventListener("click", () => {
+        document.getElementById("modalConfirmSave").classList.add("hidden");
+      });
+      document.getElementById("btnOpenSupabaseConfig").addEventListener("click", () => {
+        document.getElementById("modalSupabaseConfig").classList.remove("hidden");
+      });
+      document.getElementById("btnCloseSupabaseConfig").addEventListener("click", () => {
+        document.getElementById("modalSupabaseConfig").classList.add("hidden");
+      });
+      document.getElementById("btnSaveSupabaseConfig").addEventListener("click", () => {
+        state.supabaseUrl = document.getElementById("inputSupabaseUrl").value.trim();
+        state.supabaseKey = document.getElementById("inputSupabaseKey").value.trim();
+        document.getElementById("modalSupabaseConfig").classList.add("hidden");
+        showToast("Configuración de Supabase aplicada");
+      });
+      document.getElementById("supabaseTableBody").addEventListener("click", (e) => {
+        const btn = e.target.closest(".btn-edit-row");
+        if (!btn) return;
+        const rowId = btn.getAttribute("data-edit-id");
+        const row = state.storedRows.find((r) => String(r.id) === String(rowId));
+        if (!row) return;
+        state.editingRowId = row.id;
+        document.getElementById("editVelBow").value = row.velocidad_proa_cms;
+        document.getElementById("editVelStern").value = row.velocidad_popa_cms;
+        document.getElementById("editAngBow").value = row.angulo_proa_deg;
+        document.getElementById("editAngStern").value = row.angulo_popa_deg;
+        document.getElementById("editDistBow").value = row.distancia_proa_m;
+        document.getElementById("editDistStern").value = row.distancia_popa_m;
+        document.getElementById("editStatus").value = row.estado_atraque;
+        document.getElementById("modalEditRow").classList.remove("hidden");
+      });
+      document.getElementById("btnCloseEditModal").addEventListener("click", () => {
+        document.getElementById("modalEditRow").classList.add("hidden");
+      });
+      document.getElementById("btnSaveEditedRow").addEventListener("click", () => {
+        updateRowInSupabase(state.editingRowId, {
+          velocidad_proa_cms: parseFloat(document.getElementById("editVelBow").value) || 0,
+          velocidad_popa_cms: parseFloat(document.getElementById("editVelStern").value) || 0,
+          angulo_proa_deg: parseFloat(document.getElementById("editAngBow").value) || 0,
+          angulo_popa_deg: parseFloat(document.getElementById("editAngStern").value) || 0,
+          distancia_proa_m: parseFloat(document.getElementById("editDistBow").value) || 0,
+          distancia_popa_m: parseFloat(document.getElementById("editDistStern").value) || 0,
+          estado_atraque: document.getElementById("editStatus").value
+        });
+        document.getElementById("modalEditRow").classList.add("hidden");
+      });
       requestAnimationFrame(loop);
     });
   </script>
