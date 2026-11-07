@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monitoreo de Atraque Portuario — Etapa 2 </title>
+  <title>Monitoreo de Atraque Portuario — Etapa 2 (8 Defensas y Supabase)</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,7 +50,7 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Monitoreo de Atraque en Muelle</h1>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">Etapa 2</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">Etapa 2 · 8 Defensas + Supabase</span>
           </div>
           <p class="text-xs text-slate-400">Control de Velocidad, Distancia, Ángulo y Registro por Segundo</p>
         </div>
@@ -289,19 +289,19 @@
 
     </div>
 
-    <!-- Tabla de Base de Datos en Vivo (: registros_atraque) -->
+    <!-- Tabla de Base de Datos en Vivo (Supabase: registros_atraque) -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-sm sm:text-base font-bold text-white">Tabla en Vivo de  (<code class="text-emerald-300 mono">registros_atraque</code>)</h2>
+            <h2 class="text-sm sm:text-base font-bold text-white">Tabla en Vivo de Supabase (<code class="text-emerald-300 mono">registros_atraque</code>)</h2>
             <span id="totalStoredBadge" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-cyan-300 mono">0 filas</span>
           </div>
           <p class="text-xs text-slate-400">Almacena y permite modificar en vivo los datos guardados de cada simulación (Proa/Popa).</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button id="btnRefresh" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition">
-            🔄 Sincronizar 
+          <button id="btnRefreshSupabase" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition">
+            🔄 Sincronizar Supabase
           </button>
           <button id="btnClearStored" type="button" class="px-3 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 text-xs font-medium transition">
             🗑️ Limpiar Vista
@@ -325,7 +325,7 @@
               <th class="py-2.5 px-3 text-right">Modificar en Vivo</th>
             </tr>
           </thead>
-          <tbody id="TableBody" class="divide-y divide-slate-800/70 mono">
+          <tbody id="supabaseTableBody" class="divide-y divide-slate-800/70 mono">
           </tbody>
         </table>
       </div>
